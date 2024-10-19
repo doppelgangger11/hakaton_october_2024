@@ -1,1 +1,1 @@
-### Hakatone October 2024
+### Hakaton October 2024
