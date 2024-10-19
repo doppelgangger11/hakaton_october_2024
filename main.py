@@ -4,41 +4,49 @@ from aiogram.types import Message
 import asyncio
 from transformers import pipeline
 from token_tg import TOKEN
+import re
+from keywords import CATEGORIES
 
 # Токен Telegram-бота
 API_TOKEN = TOKEN
-
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-
-# Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
-router = Router()
 dp = Dispatcher()
+router = Router()
 
-# Загрузка модели для классификации на русском
-classifier = pipeline(
-    "text-classification", 
-    model="cointegrated/rubert-tiny2", 
-    tokenizer="cointegrated/rubert-tiny2", 
-    framework="pt"  # Используем PyTorch
-)
+def normalize_text(text):
+    """Приводим текст к нижнему регистру и убираем знаки препинания."""
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Убираем все, кроме слов и пробелов
+    return text
 
-# Функция для классификации сообщений
-def is_request(message: str) -> bool:
-    result = classifier(message)[0]
-    print(result)
-    label, score = result['label'], result['score']
-    print(f"Классификация: {label}, Вероятность: {score}")  # Для отладки
-    return label == 'LABEL_1' and score > 0.54  # Настройка порога вероятности
+def classify_text(text):
+    """Классифицируем текст на основе ключевых слов."""
+    text = normalize_text(text)
+    
+    for category, data in CATEGORIES.items():
+        if any(keyword in text for keyword in data['keywords']):
+            return category, data['days']
+    
+    # Если ничего не подошло, возвращаем категорию "Другие вопросы"
+    return 'Другие вопросы', CATEGORIES['Другие вопросы']['days']
 
 # Обработчик текстовых сообщений
 @router.message()
 async def handle_message(message: Message):
-    if is_request(message.text):
-        await message.reply("Это обращение. Спасибо! Мы зарегистрировали ваше сообщение.")
+    category, days = classify_text(message.text)
+
+    if category != 'Другие вопросы':
+        response = (
+            f"Это обращение классифицировано как: '{category}'.\n"
+            f"Срок выполнения: {days} дней."
+        )
     else:
-        await message.reply("Сообщение не классифицировано как обращение.")
+        response = (
+            "Ваше сообщение не подошло под известные категории.\n"
+            "Мы зарегистрировали его как 'Другие вопросы'."
+        )
+
+    await message.reply(response)
 
 # Основная функция для запуска бота
 async def main():
