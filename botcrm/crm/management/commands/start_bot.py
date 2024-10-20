@@ -19,7 +19,8 @@ async def handle_message(message: Message):
 
         # Сохранение сообщения в базу данных
         await save_message_to_db(
-            title=message.text,
+            title=category,
+            description=message.text,
             creator=message.from_user,  # Передаем объект Telegram User
             category=category,
             days=days
