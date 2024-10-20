@@ -5,10 +5,13 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser  # для связи с пользователями
 from django.db import models
+from datetime import timedelta
+from django.utils.timezone import now 
 
 
 class User_tg(AbstractUser):
-    telegram_id = models.CharField(max_length=255, unique=True)
+    telegram_id = models.CharField(primary_key=True, max_length=255, unique=True)
+
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255, null=True, blank=True)  # Разрешаем пустые значения
     username = models.CharField(max_length=255, null=True, blank=True)
@@ -52,7 +55,6 @@ class Task(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')  # Статус
 
-    project = models.CharField(max_length=255, blank=True, null=True)  # Проект
     created_at = models.DateTimeField(auto_now_add=True)  # Дата создания
     start_date = models.DateTimeField(blank=True, null=True)  # Дата начала работы
     updated_at = models.DateTimeField(auto_now=True)  # Дата изменения
@@ -73,6 +75,13 @@ class Task(models.Model):
     base_task_id = models.IntegerField(blank=True, null=True)  # ID базовой задачи
     base_task_title = models.CharField(max_length=255, blank=True, null=True)  # Название базовой задачи
     flow = models.CharField(max_length=255, blank=True, null=True)  # Поток
+    planned_duration = models.IntegerField(blank=True, null=True) 
+
+    def save(self, *args, **kwargs):
+            # Calculate deadline if planned_duration is provided
+            if self.planned_duration and not self.deadline:
+                self.deadline = now() + timedelta(days=self.planned_duration)
+            super().save(*args, **kwargs) 
 
     def __str__(self):
         return self.title

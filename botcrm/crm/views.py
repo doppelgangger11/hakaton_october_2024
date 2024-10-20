@@ -58,11 +58,11 @@ def get_or_create_user(creator):
         },
     )
 
-    print(f"Creating or getting user: {creator.id}, {creator.first_name}, {creator.last_name}, {project}")
+    print(f"Creating or getting user: {creator.id}, {creator.first_name}, {creator.last_name}")
     return user
 
 @sync_to_async
-def create_task(title, creator_user, project, days):
+def create_task(title, creator_user, days):
     """Создает новую задачу в базе данных."""
     if not isinstance(days, int):
         raise ValueError("days должно быть целым числом")
@@ -80,12 +80,11 @@ def create_task(title, creator_user, project, days):
         title=title,
         creator=creator_user,
         assignee=creator_user,  # Или назначьте другого пользователя
-        project=project,
         status="In Progress",  # Пример статуса
-        deadline=days,  # Здесь используйте правильный формат даты
+        planned_duration=days
     )
 
-async def save_message_to_db(title, creator, project, category, days):
+async def save_message_to_db(title, creator, category, days):
     """Сохраняет сообщение в базу данных как задачу."""
     creator_user = await get_or_create_user(creator)  # Получаем пользователя из БД
-    await create_task(title, creator_user, project, days)  # Создаем задачу
+    await create_task(title, creator_user, days)  # Создаем задачу

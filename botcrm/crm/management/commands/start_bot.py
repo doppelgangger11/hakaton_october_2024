@@ -13,7 +13,6 @@ router = Router()
 
 @router.message()
 async def handle_message(message: Message):
-    project = "Default project"
     try:
         category, days = classify_text(message.text)
 
@@ -22,7 +21,6 @@ async def handle_message(message: Message):
         await save_message_to_db(
             title=message.text,
             creator=message.from_user,  # Передаем объект Telegram User
-            project=project,
             category=category,
             days=days
         )

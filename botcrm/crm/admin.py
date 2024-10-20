@@ -6,9 +6,9 @@ from .models import Task
 # Создаем класс для кастомизации отображения модели в админке
 class TaskAdmin(admin.ModelAdmin):
     # Поля, которые будут отображаться в списке задач
-    list_display = ('title', 'status', 'creator', 'assignee', 'project', 'deadline', 'created_at')
+    list_display = ('title', 'status', 'creator', 'assignee', 'deadline', 'created_at')
     # Поля, по которым можно фильтровать задачи
-    list_filter = ('status', 'project', 'creator', 'assignee', 'deadline')
+    list_filter = ('status', 'creator', 'assignee', 'deadline')
     # Поля, по которым можно искать задачи
     search_fields = ('title', 'description', 'creator__username', 'assignee__username', 'tags')
     # Поля, которые будут доступны только для просмотра, а не для редактирования
