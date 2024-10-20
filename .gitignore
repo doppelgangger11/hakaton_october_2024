@@ -1,2 +1,5 @@
 parsed_data.csv
 
+__pycache__
+migrations
+db

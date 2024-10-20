@@ -3,8 +3,33 @@ from django.db import models
 # Create your models here.
 
 from django.db import models
-from django.contrib.auth.models import User  # для связи с пользователями
+from django.contrib.auth.models import User, AbstractUser  # для связи с пользователями
+from django.db import models
 
+
+class User_tg(AbstractUser):
+    telegram_id = models.CharField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255, null=True, blank=True)  # Разрешаем пустые значения
+    username = models.CharField(max_length=255, null=True, blank=True)
+
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='user_tg_set',  # Уникальное имя обратной ссылки для групп
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='user_tg_permissions_set',  # Уникальное имя обратной ссылки для разрешений
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Telegram User"
+        verbose_name_plural = "Telegram Users"
+
+    def __str__(self):
+        return self.username
 
 class Task(models.Model):
     # Поля задачи
@@ -13,10 +38,10 @@ class Task(models.Model):
     description = models.TextField(blank=True, null=True)  # Описание
     last_activity = models.DateTimeField(blank=True, null=True)  # Последняя активность
     deadline = models.DateTimeField(blank=True, null=True)  # Крайний срок
-    creator = models.ForeignKey(User, related_name='created_tasks', on_delete=models.SET_NULL, null=True, blank=True)  # Постановщик
-    assignee = models.ForeignKey(User, related_name='assigned_tasks', on_delete=models.SET_NULL, null=True, blank=True)  # Исполнитель
-    co_executors = models.ManyToManyField(User, related_name='coexecutors_tasks', blank=True)  # Соисполнители
-    observers = models.ManyToManyField(User, related_name='observed_tasks', blank=True)  # Наблюдатели
+    creator = models.ForeignKey(User_tg, related_name='created_tasks', on_delete=models.SET_NULL, null=True, blank=True)  # Постановщик
+    assignee = models.ForeignKey(User_tg, related_name='assigned_tasks', on_delete=models.SET_NULL, null=True, blank=True)  # Исполнитель
+    co_executors = models.ManyToManyField(User_tg, related_name='coexecutors_tasks', blank=True)  # Соисполнители
+    observers = models.ManyToManyField(User_tg, related_name='observed_tasks', blank=True)  # Наблюдатели
 
     # Статус задачи
     STATUS_CHOICES = [
@@ -51,4 +76,3 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
-
